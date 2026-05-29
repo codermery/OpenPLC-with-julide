@@ -1,0 +1,138 @@
+#include "POUS.h"
+#include "Config0.h"
+
+void MAIN_init__(MAIN *data__, BOOL retain) {
+  __INIT_VAR(data__->STATUS_BARRIER_OPEN,__BOOL_LITERAL(FALSE),retain)
+  __INIT_VAR(data__->STATUS_PASS_PERMISSION,__BOOL_LITERAL(FALSE),retain)
+  __INIT_VAR(data__->M_READY,__BOOL_LITERAL(TRUE),retain)
+  __INIT_VAR(data__->M_REQUEST,__BOOL_LITERAL(FALSE),retain)
+  __INIT_VAR(data__->M_PASS_ALLOWED,__BOOL_LITERAL(FALSE),retain)
+  __INIT_VAR(data__->M_EMERGENCY,__BOOL_LITERAL(FALSE),retain)
+  PWM_CONTROLLER_init__(&data__->PWM_CONTROLLER0,retain);
+  __INIT_VAR(data__->SERVO_CHANNEL,13,retain)
+  __INIT_VAR(data__->SERVO_FREQ,50.0,retain)
+  __INIT_VAR(data__->SERVO_DUTY_CLOSED,5.0,retain)
+  __INIT_VAR(data__->SERVO_DUTY_OPEN,7.5,retain)
+  __INIT_VAR(data__->PWM_CLOSE_OK,__BOOL_LITERAL(FALSE),retain)
+  __INIT_VAR(data__->PWM_OPEN_OK,__BOOL_LITERAL(FALSE),retain)
+  PWM_CONTROLLER_init__(&data__->PWM_CONTROLLER1,retain);
+  PWM_CONTROLLER_init__(&data__->PWM_CONTROLLER2,retain);
+  __INIT_LOCATED(BOOL,__QX0_0,data__->Q_READY,retain)
+  __INIT_LOCATED_VALUE(data__->Q_READY,__BOOL_LITERAL(FALSE))
+  __INIT_LOCATED(BOOL,__QX0_1,data__->Q_REQUEST,retain)
+  __INIT_LOCATED_VALUE(data__->Q_REQUEST,__BOOL_LITERAL(FALSE))
+  __INIT_LOCATED(BOOL,__QX0_2,data__->Q_PASS_ALLOWED,retain)
+  __INIT_LOCATED_VALUE(data__->Q_PASS_ALLOWED,__BOOL_LITERAL(FALSE))
+  __INIT_LOCATED(BOOL,__QX0_3,data__->Q_EMERGENCY,retain)
+  __INIT_LOCATED_VALUE(data__->Q_EMERGENCY,__BOOL_LITERAL(FALSE))
+  __INIT_LOCATED(BOOL,__QX1_0,data__->CMD_ROBOT_REQUEST,retain)
+  __INIT_LOCATED_VALUE(data__->CMD_ROBOT_REQUEST,__BOOL_LITERAL(FALSE))
+  __INIT_LOCATED(BOOL,__QX1_1,data__->CMD_HMI_ALLOW,retain)
+  __INIT_LOCATED_VALUE(data__->CMD_HMI_ALLOW,__BOOL_LITERAL(FALSE))
+  __INIT_LOCATED(BOOL,__QX1_2,data__->CMD_ROBOT_PASSED,retain)
+  __INIT_LOCATED_VALUE(data__->CMD_ROBOT_PASSED,__BOOL_LITERAL(FALSE))
+  __INIT_LOCATED(BOOL,__QX1_3,data__->CMD_EMERGENCY,retain)
+  __INIT_LOCATED_VALUE(data__->CMD_EMERGENCY,__BOOL_LITERAL(FALSE))
+  __INIT_LOCATED(BOOL,__QX1_4,data__->CMD_RESET,retain)
+  __INIT_LOCATED_VALUE(data__->CMD_RESET,__BOOL_LITERAL(FALSE))
+  __INIT_LOCATED(BOOL,__QX0_4,data__->STATUS_READY,retain)
+  __INIT_LOCATED_VALUE(data__->STATUS_READY,__BOOL_LITERAL(FALSE))
+  __INIT_LOCATED(BOOL,__QX0_5,data__->STATUS_REQUEST,retain)
+  __INIT_LOCATED_VALUE(data__->STATUS_REQUEST,__BOOL_LITERAL(FALSE))
+  __INIT_LOCATED(BOOL,__QX0_6,data__->STATUS_PASS_ALLOWED,retain)
+  __INIT_LOCATED_VALUE(data__->STATUS_PASS_ALLOWED,__BOOL_LITERAL(FALSE))
+  __INIT_LOCATED(BOOL,__QX0_7,data__->STATUS_EMERGENCY,retain)
+  __INIT_LOCATED_VALUE(data__->STATUS_EMERGENCY,__BOOL_LITERAL(FALSE))
+}
+
+// Code part
+void MAIN_body__(MAIN *data__) {
+  // Initialise TEMP variables
+
+  if (__GET_LOCATED(data__->CMD_RESET,)) {
+    __SET_VAR(data__->,M_READY,,__BOOL_LITERAL(TRUE));
+  };
+  if (__GET_LOCATED(data__->CMD_RESET,)) {
+    __SET_VAR(data__->,M_REQUEST,,__BOOL_LITERAL(FALSE));
+  };
+  if (__GET_LOCATED(data__->CMD_RESET,)) {
+    __SET_VAR(data__->,M_PASS_ALLOWED,,__BOOL_LITERAL(FALSE));
+  };
+  if (__GET_LOCATED(data__->CMD_RESET,)) {
+    __SET_VAR(data__->,M_EMERGENCY,,__BOOL_LITERAL(FALSE));
+  };
+  if (__GET_LOCATED(data__->CMD_EMERGENCY,)) {
+    __SET_VAR(data__->,M_EMERGENCY,,__BOOL_LITERAL(TRUE));
+  };
+  if (__GET_LOCATED(data__->CMD_EMERGENCY,)) {
+    __SET_VAR(data__->,M_READY,,__BOOL_LITERAL(FALSE));
+  };
+  if (__GET_LOCATED(data__->CMD_EMERGENCY,)) {
+    __SET_VAR(data__->,M_REQUEST,,__BOOL_LITERAL(FALSE));
+  };
+  if (__GET_LOCATED(data__->CMD_EMERGENCY,)) {
+    __SET_VAR(data__->,M_PASS_ALLOWED,,__BOOL_LITERAL(FALSE));
+  };
+  if ((__GET_LOCATED(data__->CMD_ROBOT_REQUEST,) && __GET_VAR(data__->M_READY,))) {
+    __SET_VAR(data__->,M_REQUEST,,__BOOL_LITERAL(TRUE));
+  };
+  if ((__GET_LOCATED(data__->CMD_ROBOT_REQUEST,) && __GET_VAR(data__->M_READY,))) {
+    __SET_VAR(data__->,M_READY,,__BOOL_LITERAL(FALSE));
+  };
+  if ((__GET_LOCATED(data__->CMD_HMI_ALLOW,) && __GET_VAR(data__->M_REQUEST,))) {
+    __SET_VAR(data__->,M_PASS_ALLOWED,,__BOOL_LITERAL(TRUE));
+  };
+  if ((__GET_LOCATED(data__->CMD_HMI_ALLOW,) && __GET_VAR(data__->M_REQUEST,))) {
+    __SET_VAR(data__->,M_REQUEST,,__BOOL_LITERAL(FALSE));
+  };
+  if ((__GET_LOCATED(data__->CMD_ROBOT_PASSED,) && __GET_VAR(data__->M_PASS_ALLOWED,))) {
+    __SET_VAR(data__->,M_READY,,__BOOL_LITERAL(TRUE));
+  };
+  if ((__GET_LOCATED(data__->CMD_ROBOT_PASSED,) && __GET_VAR(data__->M_PASS_ALLOWED,))) {
+    __SET_VAR(data__->,M_PASS_ALLOWED,,__BOOL_LITERAL(FALSE));
+  };
+  __SET_LOCATED(data__->,Q_READY,,!(__GET_VAR(data__->M_READY,)));
+  __SET_LOCATED(data__->,Q_REQUEST,,!(__GET_VAR(data__->M_REQUEST,)));
+  __SET_LOCATED(data__->,Q_PASS_ALLOWED,,!(__GET_VAR(data__->M_PASS_ALLOWED,)));
+  __SET_LOCATED(data__->,Q_EMERGENCY,,!(__GET_VAR(data__->M_EMERGENCY,)));
+  __SET_LOCATED(data__->,STATUS_READY,,__GET_VAR(data__->M_READY,));
+  __SET_LOCATED(data__->,STATUS_REQUEST,,__GET_VAR(data__->M_REQUEST,));
+  __SET_LOCATED(data__->,STATUS_PASS_ALLOWED,,__GET_VAR(data__->M_PASS_ALLOWED,));
+  __SET_LOCATED(data__->,STATUS_EMERGENCY,,__GET_VAR(data__->M_EMERGENCY,));
+  __SET_VAR(data__->,STATUS_BARRIER_OPEN,,__GET_VAR(data__->M_PASS_ALLOWED,));
+  __SET_VAR(data__->,STATUS_PASS_PERMISSION,,__GET_VAR(data__->M_PASS_ALLOWED,));
+  __SET_VAR(data__->PWM_CONTROLLER0.,EN,,__GET_VAR(data__->M_READY,));
+  __SET_VAR(data__->PWM_CONTROLLER0.,CHANNEL,,__GET_VAR(data__->SERVO_CHANNEL,));
+  __SET_VAR(data__->PWM_CONTROLLER0.,FREQ,,__GET_VAR(data__->SERVO_FREQ,));
+  __SET_VAR(data__->PWM_CONTROLLER0.,DUTY,,__GET_VAR(data__->SERVO_DUTY_CLOSED,));
+  PWM_CONTROLLER_body__(&data__->PWM_CONTROLLER0);
+  if (__GET_VAR(data__->PWM_CONTROLLER0.ENO,)) {
+    __SET_VAR(data__->,PWM_CLOSE_OK,,__GET_VAR(data__->PWM_CONTROLLER0.SUCCESS,));
+  };
+  __SET_VAR(data__->PWM_CONTROLLER1.,EN,,__GET_VAR(data__->M_PASS_ALLOWED,));
+  __SET_VAR(data__->PWM_CONTROLLER1.,CHANNEL,,__GET_VAR(data__->SERVO_CHANNEL,));
+  __SET_VAR(data__->PWM_CONTROLLER1.,FREQ,,__GET_VAR(data__->SERVO_FREQ,));
+  __SET_VAR(data__->PWM_CONTROLLER1.,DUTY,,__GET_VAR(data__->SERVO_DUTY_OPEN,));
+  PWM_CONTROLLER_body__(&data__->PWM_CONTROLLER1);
+  if (__GET_VAR(data__->PWM_CONTROLLER1.ENO,)) {
+    __SET_VAR(data__->,PWM_OPEN_OK,,__GET_VAR(data__->PWM_CONTROLLER1.SUCCESS,));
+  };
+  __SET_VAR(data__->PWM_CONTROLLER2.,EN,,__GET_LOCATED(data__->CMD_ROBOT_PASSED,));
+  __SET_VAR(data__->PWM_CONTROLLER2.,CHANNEL,,__GET_VAR(data__->SERVO_CHANNEL,));
+  __SET_VAR(data__->PWM_CONTROLLER2.,FREQ,,__GET_VAR(data__->SERVO_FREQ,));
+  __SET_VAR(data__->PWM_CONTROLLER2.,DUTY,,__GET_VAR(data__->SERVO_DUTY_CLOSED,));
+  PWM_CONTROLLER_body__(&data__->PWM_CONTROLLER2);
+  if (__GET_VAR(data__->PWM_CONTROLLER2.ENO,)) {
+    __SET_VAR(data__->,PWM_CLOSE_OK,,__GET_VAR(data__->PWM_CONTROLLER2.SUCCESS,));
+  };
+
+  goto __end;
+
+__end:
+  return;
+} // MAIN_body__() 
+
+
+
+
+

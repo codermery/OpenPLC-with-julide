@@ -1,0 +1,26 @@
+[
+  {
+    "pin": "D1",
+    "pinType": "digitalOutput",
+    "address": "%QX0.0",
+    "name": "Q_READY"
+  },
+  {
+    "pin": "D2",
+    "pinType": "digitalOutput",
+    "address": "%QX0.1",
+    "name": "Q_REQUEST"
+  },
+  {
+    "pin": "D5",
+    "pinType": "digitalOutput",
+    "address": "%QX0.2",
+    "name": "Q_PASS_ALLOWED"
+  },
+  {
+    "pin": "D6",
+    "pinType": "digitalOutput",
+    "address": "%QX0.3",
+    "name": "Q_EMERGENCY"
+  }
+]

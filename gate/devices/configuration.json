@@ -1,0 +1,31 @@
+{
+  "deviceBoard": "ESP8266 NodeMCU",
+  "communicationPort": "COM5",
+  "runtimeIpAddress": "",
+  "compileOnly": false,
+  "communicationConfiguration": {
+    "modbusRTU": {
+      "rtuInterface": "Serial",
+      "rtuBaudRate": "115200",
+      "rtuSlaveId": null,
+      "rtuRS485ENPin": null
+    },
+    "modbusTCP": {
+      "tcpInterface": "Wi-Fi",
+      "tcpMacAddress": "84:f3:eb:2f:4e:78",
+      "tcpWifiSSID": "PLC_GATE_CTRL",
+      "tcpWifiPassword": "12345678",
+      "tcpStaticHostConfiguration": {
+        "ipAddress": "",
+        "dns": "",
+        "gateway": "",
+        "subnet": ""
+      }
+    },
+    "communicationPreferences": {
+      "enabledRTU": false,
+      "enabledTCP": true,
+      "enabledDHCP": true
+    }
+  }
+}
