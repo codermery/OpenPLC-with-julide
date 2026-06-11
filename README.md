@@ -7,17 +7,14 @@
 ## Demo Video
 
 <p align="center">
-  <a href="https://www.youtube.com/watch?v=nVAnG_Sywss">
-    <img src="https://img.youtube.com/vi/nVAnG_Sywss/maxresdefault.jpg" alt="Jülide Robot + OpenPLC Gate Demo" width="720">
-  </a>
+  <video width="720" controls>
+    <source src="assets/demo.mp4" type="video/mp4">
+    Tarayıcınız video etiketini desteklemiyor.
+  </video>
 </p>
 
 <p align="center">
-  <iframe width="720" height="405" src="https://www.youtube.com/embed/nVAnG_Sywss" title="Jülide Robot + OpenPLC Gate Demo" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
-</p>
-
-<p align="center">
-  <a href="https://www.youtube.com/watch?v=nVAnG_Sywss">YouTube'da izle</a>
+  <a href="https://www.youtube.com/watch?v=nVAnG_Sywss">YouTube'da tam kalite izle</a>
 </p>
 
 ---
