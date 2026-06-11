@@ -6,15 +6,10 @@
 
 ## Demo Video
 
-<p align="center">
-  <video width="720" controls>
-    <source src="assets/demo.mp4" type="video/mp4">
-    Tarayıcınız video etiketini desteklemiyor.
-  </video>
-</p>
+![Jülide Robot + OpenPLC Gate Demo](data/demo.gif)
 
 <p align="center">
-  <a href="https://www.youtube.com/watch?v=nVAnG_Sywss">YouTube'da tam kalite izle</a>
+  <a href="https://github.com/codermery/OpenPLC-with-julide/blob/master/data/run.mp4"><strong>▶ Tam kalite videoyu izle (MP4)</strong></a>
 </p>
 
 ---
