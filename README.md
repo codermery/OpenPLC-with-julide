@@ -4,8 +4,27 @@
 
 ---
 
+## Demo Video
+
+<p align="center">
+  <a href="https://www.youtube.com/watch?v=nVAnG_Sywss">
+    <img src="https://img.youtube.com/vi/nVAnG_Sywss/maxresdefault.jpg" alt="Jülide Robot + OpenPLC Gate Demo" width="720">
+  </a>
+</p>
+
+<p align="center">
+  <iframe width="720" height="405" src="https://www.youtube.com/embed/nVAnG_Sywss" title="Jülide Robot + OpenPLC Gate Demo" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+</p>
+
+<p align="center">
+  <a href="https://www.youtube.com/watch?v=nVAnG_Sywss">YouTube'da izle</a>
+</p>
+
+---
+
 ## İçindekiler
 
+0. [Demo Video](#demo-video)
 1. [Genel Tanım](#1-genel-tanım)
 2. [Sistem Mimarisi](#2-sistem-mimarisi)
 3. [Donanım Bileşenleri](#3-donanım-bileşenleri)
