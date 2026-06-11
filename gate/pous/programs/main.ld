@@ -26,8 +26,6 @@ VAR
 	SERVO_DUTY_OPEN : real := 7.5;
 	PWM_CLOSE_OK : bool := False;
 	PWM_OPEN_OK : bool := False;
-	PWM_CONTROLLER1 : PWM_CONTROLLER;
-	PWM_CONTROLLER2 : PWM_CONTROLLER;
 END_VAR
 
 {
@@ -14036,7 +14034,8 @@ END_VAR
               "location": "",
               "initialValue": "5.0",
               "documentation": "",
-              "debug": false
+              "debug": false,
+              "id": "broken-VARIABLE_596be9cf-6fda-4be8-a8c9-8e086903016a"
             },
             "executionOrder": 0,
             "variant": "input",
@@ -14133,7 +14132,8 @@ END_VAR
               "location": "",
               "initialValue": "False",
               "documentation": "",
-              "debug": false
+              "debug": false,
+              "id": "broken-VARIABLE_b6df0ab9-7822-4ee0-abe4-6988fb842606"
             },
             "executionOrder": 0,
             "variant": "output",
@@ -14817,7 +14817,7 @@ END_VAR
               "documentation": "Configures the CPU internal PWM peripheral to generate a PWM signal through hardware. If the CPU does not have a PWM peripheral, compiling this block will result in a compilation error. CHANNEL is the PWM channel number. For most Arduino boards that number is the pin number for the PWM capable pin. FREQ is the desired PWM frequency in Hz. DUTY is the PWM duty cycle (between 0 and 100)."
             },
             "variable": {
-              "name": "PWM_CONTROLLER1",
+              "name": "PWM_CONTROLLER0",
               "type": {
                 "definition": "derived",
                 "value": "PWM_CONTROLLER"
@@ -16041,7 +16041,7 @@ END_VAR
               "documentation": "Configures the CPU internal PWM peripheral to generate a PWM signal through hardware. If the CPU does not have a PWM peripheral, compiling this block will result in a compilation error. CHANNEL is the PWM channel number. For most Arduino boards that number is the pin number for the PWM capable pin. FREQ is the desired PWM frequency in Hz. DUTY is the PWM duty cycle (between 0 and 100)."
             },
             "variable": {
-              "name": "PWM_CONTROLLER2",
+              "name": "PWM_CONTROLLER0",
               "type": {
                 "definition": "derived",
                 "value": "PWM_CONTROLLER"
@@ -16288,7 +16288,7 @@ END_VAR
               "initialValue": "13",
               "documentation": "",
               "debug": false,
-              "id": "broken-VARIABLE_85b56b19-acbf-49de-9273-5c3ff5f3216e"
+              "id": "broken-VARIABLE_03bb478e-76fb-4787-872a-bf949d76ceac"
             },
             "executionOrder": 0,
             "variant": "input",
@@ -16386,7 +16386,7 @@ END_VAR
               "initialValue": "50.0",
               "documentation": "",
               "debug": false,
-              "id": "broken-VARIABLE_e6ae2a28-399c-423b-afb8-33f970ad2a6c"
+              "id": "broken-VARIABLE_434eabc6-3f74-44fa-8368-a467a634e933"
             },
             "executionOrder": 0,
             "variant": "input",
@@ -16483,7 +16483,8 @@ END_VAR
               "location": "",
               "initialValue": "5.0",
               "documentation": "",
-              "debug": false
+              "debug": false,
+              "id": "broken-VARIABLE_3e574ea3-db06-4a27-80e8-f691ad372031"
             },
             "executionOrder": 0,
             "variant": "input",
@@ -16580,7 +16581,8 @@ END_VAR
               "location": "",
               "initialValue": "False",
               "documentation": "",
-              "debug": false
+              "debug": false,
+              "id": "broken-VARIABLE_7ee406eb-2af8-4956-923b-b74a1e621ae0"
             },
             "executionOrder": 0,
             "variant": "output",

@@ -3,7 +3,7 @@
 
 
 //Program MD5
-#define PROGRAM_MD5 "afe47c0ff73042d929c9974d03897b00"
+#define PROGRAM_MD5 "ef2df8eafba75bfadd009ed3909d09cf"
 
 //Comms Configuration
 #define MBSERIAL_IFACE Serial

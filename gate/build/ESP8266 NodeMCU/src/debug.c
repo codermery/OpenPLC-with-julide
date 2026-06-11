@@ -33,7 +33,7 @@
 #define SAME_ENDIANNESS      0
 #define REVERSE_ENDIANNESS   1
 
-char plc_program_md5[] = "afe47c0ff73042d929c9974d03897b00";
+char plc_program_md5[] = "ef2df8eafba75bfadd009ed3909d09cf";
 
 uint8_t endianness;
 
@@ -65,24 +65,6 @@ static const struct {
     {&(RES0__INSTANCE0.SERVO_DUTY_OPEN), REAL_ENUM},
     {&(RES0__INSTANCE0.PWM_CLOSE_OK), BOOL_ENUM},
     {&(RES0__INSTANCE0.PWM_OPEN_OK), BOOL_ENUM},
-    {&(RES0__INSTANCE0.PWM_CONTROLLER1.EN), BOOL_ENUM},
-    {&(RES0__INSTANCE0.PWM_CONTROLLER1.ENO), BOOL_ENUM},
-    {&(RES0__INSTANCE0.PWM_CONTROLLER1.CHANNEL), SINT_ENUM},
-    {&(RES0__INSTANCE0.PWM_CONTROLLER1.FREQ), REAL_ENUM},
-    {&(RES0__INSTANCE0.PWM_CONTROLLER1.DUTY), REAL_ENUM},
-    {&(RES0__INSTANCE0.PWM_CONTROLLER1.SUCCESS), BOOL_ENUM},
-    {&(RES0__INSTANCE0.PWM_CONTROLLER1.INTERNAL_CH), SINT_ENUM},
-    {&(RES0__INSTANCE0.PWM_CONTROLLER1.INTERNAL_FREQ), REAL_ENUM},
-    {&(RES0__INSTANCE0.PWM_CONTROLLER1.INTERNAL_DUTY), REAL_ENUM},
-    {&(RES0__INSTANCE0.PWM_CONTROLLER2.EN), BOOL_ENUM},
-    {&(RES0__INSTANCE0.PWM_CONTROLLER2.ENO), BOOL_ENUM},
-    {&(RES0__INSTANCE0.PWM_CONTROLLER2.CHANNEL), SINT_ENUM},
-    {&(RES0__INSTANCE0.PWM_CONTROLLER2.FREQ), REAL_ENUM},
-    {&(RES0__INSTANCE0.PWM_CONTROLLER2.DUTY), REAL_ENUM},
-    {&(RES0__INSTANCE0.PWM_CONTROLLER2.SUCCESS), BOOL_ENUM},
-    {&(RES0__INSTANCE0.PWM_CONTROLLER2.INTERNAL_CH), SINT_ENUM},
-    {&(RES0__INSTANCE0.PWM_CONTROLLER2.INTERNAL_FREQ), REAL_ENUM},
-    {&(RES0__INSTANCE0.PWM_CONTROLLER2.INTERNAL_DUTY), REAL_ENUM},
     {&(RES0__INSTANCE0.Q_READY), BOOL_O_ENUM},
     {&(RES0__INSTANCE0.Q_REQUEST), BOOL_O_ENUM},
     {&(RES0__INSTANCE0.Q_PASS_ALLOWED), BOOL_O_ENUM},
@@ -98,7 +80,7 @@ static const struct {
     {&(RES0__INSTANCE0.STATUS_EMERGENCY), BOOL_O_ENUM},
 };
 
-#define VAR_COUNT               52
+#define VAR_COUNT               34
 
 uint16_t get_var_count(void)
 {
@@ -115,10 +97,10 @@ size_t get_var_size(size_t idx)
     case BOOL_ENUM:
     case BOOL_O_ENUM:
         return sizeof(BOOL);
-    case REAL_ENUM:
-        return sizeof(REAL);
     case SINT_ENUM:
         return sizeof(SINT);
+    case REAL_ENUM:
+        return sizeof(REAL);
     default:
         return 0;
     }
@@ -135,10 +117,10 @@ void *get_var_addr(size_t idx)
         return (void *)((((__IEC_BOOL_p *) ptr)->flags & __IEC_FORCE_FLAG)
                         ? &(((__IEC_BOOL_p *) ptr)->fvalue)
                         : ((__IEC_BOOL_p *) ptr)->value);
-    case REAL_ENUM:
-        return (void *)&((__IEC_REAL_t *) ptr)->value;
     case SINT_ENUM:
         return (void *)&((__IEC_SINT_t *) ptr)->value;
+    case REAL_ENUM:
+        return (void *)&((__IEC_REAL_t *) ptr)->value;
     default:
         return 0;
     }
@@ -163,15 +145,15 @@ void force_var(size_t idx, bool forced, void *val)
             ((__IEC_BOOL_p *) ptr)->flags |= __IEC_FORCE_FLAG;
             break;
         }
-        case REAL_ENUM: {
-            memcpy(&((__IEC_REAL_t *) ptr)->value, val, var_size);
-            ((__IEC_REAL_t *) ptr)->flags |= __IEC_FORCE_FLAG;
-            break;
-        }
-    
         case SINT_ENUM: {
             memcpy(&((__IEC_SINT_t *) ptr)->value, val, var_size);
             ((__IEC_SINT_t *) ptr)->flags |= __IEC_FORCE_FLAG;
+            break;
+        }
+    
+        case REAL_ENUM: {
+            memcpy(&((__IEC_REAL_t *) ptr)->value, val, var_size);
+            ((__IEC_REAL_t *) ptr)->flags |= __IEC_FORCE_FLAG;
             break;
         }
     
@@ -186,11 +168,11 @@ void force_var(size_t idx, bool forced, void *val)
         case BOOL_O_ENUM:
             ((__IEC_BOOL_p *) ptr)->flags &= ~__IEC_FORCE_FLAG;
             break;
-        case REAL_ENUM:
-            ((__IEC_REAL_t *) ptr)->flags &= ~__IEC_FORCE_FLAG;
-            break;
         case SINT_ENUM:
             ((__IEC_SINT_t *) ptr)->flags &= ~__IEC_FORCE_FLAG;
+            break;
+        case REAL_ENUM:
+            ((__IEC_REAL_t *) ptr)->flags &= ~__IEC_FORCE_FLAG;
             break;
         default:
             break;

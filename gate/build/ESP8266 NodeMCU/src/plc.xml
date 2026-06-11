@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0201" xmlns:xsd="http://www.w3.org/2001/XMLSchema-instance" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:ns1="http://www.plcopen.org/xml/tc6_0201">
-  <fileHeader companyName="Unknown" productName="Unnamed" productVersion="1" creationDateTime="2026-05-30T01:42:26"/>
-  <contentHeader name="Unnamed" modificationDateTime="2026-05-30T01:42:26">
+  <fileHeader companyName="Unknown" productName="Unnamed" productVersion="1" creationDateTime="2026-06-10T17:03:42"/>
+  <contentHeader name="Unnamed" modificationDateTime="2026-06-10T17:03:42">
     <coordinateInfo>
       <fbd>
         <scaling x="16" y="16"/>
@@ -224,16 +224,6 @@
               <initialValue>
                 <simpleValue value="False"/>
               </initialValue>
-            </variable>
-            <variable name="PWM_CONTROLLER1">
-              <type>
-                <derived name="PWM_CONTROLLER"/>
-              </type>
-            </variable>
-            <variable name="PWM_CONTROLLER2">
-              <type>
-                <derived name="PWM_CONTROLLER"/>
-              </type>
             </variable>
           </localVars>
         </interface>
@@ -725,7 +715,7 @@
                 </variable>
               </outputVariables>
             </block>
-            <block localId="8118651" typeName="PWM_CONTROLLER" instanceName="PWM_CONTROLLER1" width="186" height="180" executionOrderId="0">
+            <block localId="8118651" typeName="PWM_CONTROLLER" instanceName="PWM_CONTROLLER0" width="186" height="180" executionOrderId="0">
               <position x="257" y="3108"/>
               <inputVariables>
                 <variable formalParameter="EN">
@@ -779,7 +769,7 @@
                 </variable>
               </outputVariables>
             </block>
-            <block localId="10199694" typeName="PWM_CONTROLLER" instanceName="PWM_CONTROLLER2" width="186" height="180" executionOrderId="0">
+            <block localId="10199694" typeName="PWM_CONTROLLER" instanceName="PWM_CONTROLLER0" width="186" height="180" executionOrderId="0">
               <position x="257" y="3322"/>
               <inputVariables>
                 <variable formalParameter="EN">

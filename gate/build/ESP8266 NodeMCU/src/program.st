@@ -13,8 +13,6 @@ PROGRAM main
     SERVO_DUTY_OPEN : REAL := 7.5;
     PWM_CLOSE_OK : BOOL := False;
     PWM_OPEN_OK : BOOL := False;
-    PWM_CONTROLLER1 : PWM_CONTROLLER;
-    PWM_CONTROLLER2 : PWM_CONTROLLER;
   END_VAR
   VAR
     Q_READY AT %QX0.0 : BOOL := False;
@@ -88,13 +86,13 @@ PROGRAM main
   IF PWM_CONTROLLER0.ENO THEN
       PWM_CLOSE_OK := PWM_CONTROLLER0.SUCCESS;
   END_IF;
-  PWM_CONTROLLER1(EN := M_PASS_ALLOWED, CHANNEL := SERVO_CHANNEL, FREQ := SERVO_FREQ, DUTY := SERVO_DUTY_OPEN);
-  IF PWM_CONTROLLER1.ENO THEN
-      PWM_OPEN_OK := PWM_CONTROLLER1.SUCCESS;
+  PWM_CONTROLLER0(EN := M_PASS_ALLOWED, CHANNEL := SERVO_CHANNEL, FREQ := SERVO_FREQ, DUTY := SERVO_DUTY_OPEN);
+  IF PWM_CONTROLLER0.ENO THEN
+      PWM_OPEN_OK := PWM_CONTROLLER0.SUCCESS;
   END_IF;
-  PWM_CONTROLLER2(EN := CMD_ROBOT_PASSED, CHANNEL := SERVO_CHANNEL, FREQ := SERVO_FREQ, DUTY := SERVO_DUTY_CLOSED);
-  IF PWM_CONTROLLER2.ENO THEN
-      PWM_CLOSE_OK := PWM_CONTROLLER2.SUCCESS;
+  PWM_CONTROLLER0(EN := CMD_ROBOT_PASSED, CHANNEL := SERVO_CHANNEL, FREQ := SERVO_FREQ, DUTY := SERVO_DUTY_CLOSED);
+  IF PWM_CONTROLLER0.ENO THEN
+      PWM_CLOSE_OK := PWM_CONTROLLER0.SUCCESS;
   END_IF;
 END_PROGRAM
 
@@ -107,7 +105,7 @@ CONFIGURATION Config0
   END_RESOURCE
 END_CONFIGURATION
 
-(*DBG:char md5[] = "afe47c0ff73042d929c9974d03897b00";*)
+(*DBG:char md5[] = "ef2df8eafba75bfadd009ed3909d09cf";*)
 (*DBG:/**)
 (*DBG: * This file is part of OpenPLC Runtime*)
 (*DBG: **)
@@ -143,7 +141,7 @@ END_CONFIGURATION
 (*DBG:#define SAME_ENDIANNESS      0*)
 (*DBG:#define REVERSE_ENDIANNESS   1*)
 (*DBG:*)
-(*DBG:char plc_program_md5[] = "afe47c0ff73042d929c9974d03897b00";*)
+(*DBG:char plc_program_md5[] = "ef2df8eafba75bfadd009ed3909d09cf";*)
 (*DBG:*)
 (*DBG:uint8_t endianness;*)
 (*DBG:*)
@@ -175,24 +173,6 @@ END_CONFIGURATION
 (*DBG:    {&(RES0__INSTANCE0.SERVO_DUTY_OPEN), REAL_ENUM},*)
 (*DBG:    {&(RES0__INSTANCE0.PWM_CLOSE_OK), BOOL_ENUM},*)
 (*DBG:    {&(RES0__INSTANCE0.PWM_OPEN_OK), BOOL_ENUM},*)
-(*DBG:    {&(RES0__INSTANCE0.PWM_CONTROLLER1.EN), BOOL_ENUM},*)
-(*DBG:    {&(RES0__INSTANCE0.PWM_CONTROLLER1.ENO), BOOL_ENUM},*)
-(*DBG:    {&(RES0__INSTANCE0.PWM_CONTROLLER1.CHANNEL), SINT_ENUM},*)
-(*DBG:    {&(RES0__INSTANCE0.PWM_CONTROLLER1.FREQ), REAL_ENUM},*)
-(*DBG:    {&(RES0__INSTANCE0.PWM_CONTROLLER1.DUTY), REAL_ENUM},*)
-(*DBG:    {&(RES0__INSTANCE0.PWM_CONTROLLER1.SUCCESS), BOOL_ENUM},*)
-(*DBG:    {&(RES0__INSTANCE0.PWM_CONTROLLER1.INTERNAL_CH), SINT_ENUM},*)
-(*DBG:    {&(RES0__INSTANCE0.PWM_CONTROLLER1.INTERNAL_FREQ), REAL_ENUM},*)
-(*DBG:    {&(RES0__INSTANCE0.PWM_CONTROLLER1.INTERNAL_DUTY), REAL_ENUM},*)
-(*DBG:    {&(RES0__INSTANCE0.PWM_CONTROLLER2.EN), BOOL_ENUM},*)
-(*DBG:    {&(RES0__INSTANCE0.PWM_CONTROLLER2.ENO), BOOL_ENUM},*)
-(*DBG:    {&(RES0__INSTANCE0.PWM_CONTROLLER2.CHANNEL), SINT_ENUM},*)
-(*DBG:    {&(RES0__INSTANCE0.PWM_CONTROLLER2.FREQ), REAL_ENUM},*)
-(*DBG:    {&(RES0__INSTANCE0.PWM_CONTROLLER2.DUTY), REAL_ENUM},*)
-(*DBG:    {&(RES0__INSTANCE0.PWM_CONTROLLER2.SUCCESS), BOOL_ENUM},*)
-(*DBG:    {&(RES0__INSTANCE0.PWM_CONTROLLER2.INTERNAL_CH), SINT_ENUM},*)
-(*DBG:    {&(RES0__INSTANCE0.PWM_CONTROLLER2.INTERNAL_FREQ), REAL_ENUM},*)
-(*DBG:    {&(RES0__INSTANCE0.PWM_CONTROLLER2.INTERNAL_DUTY), REAL_ENUM},*)
 (*DBG:    {&(RES0__INSTANCE0.Q_READY), BOOL_O_ENUM},*)
 (*DBG:    {&(RES0__INSTANCE0.Q_REQUEST), BOOL_O_ENUM},*)
 (*DBG:    {&(RES0__INSTANCE0.Q_PASS_ALLOWED), BOOL_O_ENUM},*)
@@ -208,7 +188,7 @@ END_CONFIGURATION
 (*DBG:    {&(RES0__INSTANCE0.STATUS_EMERGENCY), BOOL_O_ENUM},*)
 (*DBG:};*)
 (*DBG:*)
-(*DBG:#define VAR_COUNT               52*)
+(*DBG:#define VAR_COUNT               34*)
 (*DBG:*)
 (*DBG:uint16_t get_var_count(void)*)
 (*DBG:{*)
@@ -225,10 +205,10 @@ END_CONFIGURATION
 (*DBG:    case BOOL_ENUM:*)
 (*DBG:    case BOOL_O_ENUM:*)
 (*DBG:        return sizeof(BOOL);*)
-(*DBG:    case REAL_ENUM:*)
-(*DBG:        return sizeof(REAL);*)
 (*DBG:    case SINT_ENUM:*)
 (*DBG:        return sizeof(SINT);*)
+(*DBG:    case REAL_ENUM:*)
+(*DBG:        return sizeof(REAL);*)
 (*DBG:    default:*)
 (*DBG:        return 0;*)
 (*DBG:    }*)
@@ -245,10 +225,10 @@ END_CONFIGURATION
 (*DBG:        return (void *)((((__IEC_BOOL_p *) ptr)->flags & __IEC_FORCE_FLAG)*)
 (*DBG:                        ? &(((__IEC_BOOL_p *) ptr)->fvalue)*)
 (*DBG:                        : ((__IEC_BOOL_p *) ptr)->value);*)
-(*DBG:    case REAL_ENUM:*)
-(*DBG:        return (void *)&((__IEC_REAL_t *) ptr)->value;*)
 (*DBG:    case SINT_ENUM:*)
 (*DBG:        return (void *)&((__IEC_SINT_t *) ptr)->value;*)
+(*DBG:    case REAL_ENUM:*)
+(*DBG:        return (void *)&((__IEC_REAL_t *) ptr)->value;*)
 (*DBG:    default:*)
 (*DBG:        return 0;*)
 (*DBG:    }*)
@@ -273,15 +253,15 @@ END_CONFIGURATION
 (*DBG:            ((__IEC_BOOL_p *) ptr)->flags |= __IEC_FORCE_FLAG;*)
 (*DBG:            break;*)
 (*DBG:        }*)
-(*DBG:        case REAL_ENUM: {*)
-(*DBG:            memcpy(&((__IEC_REAL_t *) ptr)->value, val, var_size);*)
-(*DBG:            ((__IEC_REAL_t *) ptr)->flags |= __IEC_FORCE_FLAG;*)
-(*DBG:            break;*)
-(*DBG:        }*)
-(*DBG:    *)
 (*DBG:        case SINT_ENUM: {*)
 (*DBG:            memcpy(&((__IEC_SINT_t *) ptr)->value, val, var_size);*)
 (*DBG:            ((__IEC_SINT_t *) ptr)->flags |= __IEC_FORCE_FLAG;*)
+(*DBG:            break;*)
+(*DBG:        }*)
+(*DBG:    *)
+(*DBG:        case REAL_ENUM: {*)
+(*DBG:            memcpy(&((__IEC_REAL_t *) ptr)->value, val, var_size);*)
+(*DBG:            ((__IEC_REAL_t *) ptr)->flags |= __IEC_FORCE_FLAG;*)
 (*DBG:            break;*)
 (*DBG:        }*)
 (*DBG:    *)
@@ -296,11 +276,11 @@ END_CONFIGURATION
 (*DBG:        case BOOL_O_ENUM:*)
 (*DBG:            ((__IEC_BOOL_p *) ptr)->flags &= ~__IEC_FORCE_FLAG;*)
 (*DBG:            break;*)
-(*DBG:        case REAL_ENUM:*)
-(*DBG:            ((__IEC_REAL_t *) ptr)->flags &= ~__IEC_FORCE_FLAG;*)
-(*DBG:            break;*)
 (*DBG:        case SINT_ENUM:*)
 (*DBG:            ((__IEC_SINT_t *) ptr)->flags &= ~__IEC_FORCE_FLAG;*)
+(*DBG:            break;*)
+(*DBG:        case REAL_ENUM:*)
+(*DBG:            ((__IEC_REAL_t *) ptr)->flags &= ~__IEC_FORCE_FLAG;*)
 (*DBG:            break;*)
 (*DBG:        default:*)
 (*DBG:            break;*)

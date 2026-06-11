@@ -9,7 +9,7 @@
 
   Ag:
   - PC Windows hotspot: PLC_GATE_CTRL / 12345678
-  - Kapi ESP OpenPLC IP: 192.168.137.218
+  - Kapi ESP OpenPLC IP: Web arayuzunden degistirilebilir
   - OpenPLC Modbus TCP Port: 502
   - Unit ID: 0
 
@@ -28,6 +28,7 @@
 
 #include <ESP8266WiFi.h>
 #include <ESP8266WebServer.h>
+#include <EEPROM.h>
 // Raw Modbus TCP client kullaniliyor; ekstra Modbus kutuphanesi gerekmez.
 
 // ================= WIFI / OPENPLC AYARLARI =================
@@ -38,6 +39,14 @@ const char* WIFI_PASS = "12345678";
 IPAddress PLC_IP(192, 168, 137, 218);
 const uint16_t PLC_PORT = 502;
 const uint8_t MODBUS_UNIT_ID = 0;
+
+// PLC IP artık web arayüzünden değiştirilebilir ve EEPROM'a kaydedilir.
+// Böylece OpenPLC/Gate ESP DHCP ile farklı IP alırsa Arduino kodunu tekrar
+// yüklemeden Jülide joystick ekranından yeni IP girilebilir.
+const uint16_t EEPROM_SIZE = 64;
+const uint32_t SETTINGS_MAGIC = 0x4A554C49;  // "JULI"
+const int EEPROM_MAGIC_ADDR = 0;
+const int EEPROM_PLC_IP_ADDR = 4;
 
 const char* ROBOT_ID = "julide";
 
@@ -92,11 +101,14 @@ const int ENB = 15;   // D8 - GPIO15 - Sag PWM
 const int TRIG_PIN = 0;    // D3 - GPIO0
 const int ECHO_PIN = 16;   // D0 - GPIO16
 
-float stopDistanceCm = 5.0;
-float slowDistanceCm = 10.0;
+// HC-SR04 sensörün ölçtüğü mesafe, sensörün ön yüzünden kapıya kadardır.
+// Robot burnu sensörden öndeyse gerçek çarpma payı için stopDistanceCm daha büyük tutulmalıdır.
+float stopDistanceCm = 12.0;
+float slowDistanceCm = 25.0;
 
 unsigned long lastDistanceCheck = 0;
-unsigned long distanceCheckInterval = 100;
+unsigned long distanceCheckInterval = 50;
+unsigned long BRAKE_MS = 80;
 float lastDistanceCm = -1;
 
 // Web joystick v6: eski davranis.
@@ -108,8 +120,10 @@ unsigned long manualMotionTimeoutAt = 0;
 
 // ================= MOTOR AYARLARI =================
 
-bool LEFT_INVERT  = false;
-bool RIGHT_INVERT = false;
+// Robot mekanik olarak ters monte edildiği için ileri/geri yönleri ters dönüyordu.
+// İki motor grubunu da invert ederek "İLERİ" komutu fiziksel olarak ileri gider.
+bool LEFT_INVERT  = true;
+bool RIGHT_INVERT = true;
 
 const int motorSpeed = 350;
 const int slowSpeed  = 220;
@@ -156,6 +170,7 @@ uint16_t modbusTransactionId = 1;
 // ================= FORWARD DECLARATIONS =================
 
 void stopMotors();
+void brakeMotors(unsigned long brakeMs);
 void forward();
 void backward();
 void turnLeft();
@@ -172,13 +187,19 @@ void handleApiMove();
 void handleApiStatus();
 void handleApiGateMode();
 void handleApiSettings();
+void handleApiSafety();
 void handleApiGateRequest();
 void handleApiGatePassed();
 void handleApiGateForcePass();
+void handleApiPlcIp();
+void handleApiPlcTest();
 void startGatePassing();
 void autoStopManualMotion();
 void armManualMotionTimeout();
 void clearManualMotionTimeout();
+void loadPersistentSettings();
+void savePlcIpToEeprom();
+bool parseIpString(const String &text, IPAddress &out);
 
 // ================= RAW MODBUS TCP =================
 
@@ -206,8 +227,11 @@ void setup() {
   stopMotors();
 
   Serial.println();
-  Serial.println("JULIDE ROBOT - OpenPLC Raw Modbus + Stable Web Joystick v7");
+  Serial.println("JULIDE ROBOT - OpenPLC Raw Modbus + Stable Web Joystick v8");
   Serial.println("------------------------------------------------");
+
+  EEPROM.begin(EEPROM_SIZE);
+  loadPersistentSettings();
 
   connectToWiFi();
 
@@ -603,17 +627,17 @@ void monitorEmergencyWhenMoving() {
 
 void beginGateRequest(float distance) {
   if (!gateModeEnabled) {
-    stopMotors();
-    Serial.println("[GATE] Gate mode kapali. Sadece durdu.");
+    brakeMotors(BRAKE_MS);
+    Serial.println("[GATE] Gate mode kapali. Kapi oncesi guvenli durdu.");
     return;
   }
 
   if (gateState != GATE_IDLE) return;
 
-  stopMotors();
+  brakeMotors(BRAKE_MS);
 
   Serial.println();
-  Serial.println("[GATE] Kapi bolgesine gelindi.");
+  Serial.println("[GATE] Kapi bolgesine gelindi. Robot frenleyerek durdu.");
   Serial.print("[GATE] Mesafe: ");
   Serial.print(distance);
   Serial.println(" cm");
@@ -893,6 +917,28 @@ void turnRight() {
   Serial.println("Saga don.");
 }
 
+void brakeMotors(unsigned long brakeMs) {
+  currentMotion = STOPPED;
+
+  // L298N aktif frenleme: aynı motor kanalındaki iki yön pini aynı seviyeye alınır
+  // ve EN pinleri kısa süre yüksek tutulur. Bu, sadece PWM'i 0 yapmaya göre
+  // robotun daha çabuk durmasına yardımcı olur.
+  digitalWrite(IN1, HIGH);
+  digitalWrite(IN2, HIGH);
+  digitalWrite(IN3, HIGH);
+  digitalWrite(IN4, HIGH);
+  analogWrite(ENA, 1023);
+  analogWrite(ENB, 1023);
+
+  unsigned long start = millis();
+  while (millis() - start < brakeMs) {
+    server.handleClient();
+    delay(1);
+  }
+
+  stopMotors();
+}
+
 void stopMotors() {
   currentMotion = STOPPED;
   analogWrite(ENA, 0);
@@ -912,6 +958,9 @@ void setupWebServer() {
   server.on("/api/status", HTTP_GET, handleApiStatus);
   server.on("/api/gate_mode", HTTP_GET, handleApiGateMode);
   server.on("/api/settings", HTTP_GET, handleApiSettings);
+  server.on("/api/safety", HTTP_GET, handleApiSafety);
+  server.on("/api/plc/ip", HTTP_GET, handleApiPlcIp);
+  server.on("/api/plc/test", HTTP_GET, handleApiPlcTest);
   server.on("/api/gate/request", HTTP_GET, handleApiGateRequest);
   server.on("/api/gate/passed", HTTP_GET, handleApiGatePassed);
   server.on("/api/gate/force_pass", HTTP_GET, handleApiGateForcePass);
@@ -938,25 +987,58 @@ void handleRoot() {
 <title>Jülide Joystick</title>
 <style>
 body{font-family:Arial,sans-serif;background:#111827;color:#e5e7eb;margin:0;padding:18px;text-align:center}
-.card{max-width:520px;margin:auto;background:#1f2937;border-radius:18px;padding:18px;box-shadow:0 10px 30px #0006}
-h1{font-size:24px;margin:8px 0 16px}
+.card{max-width:560px;margin:auto;background:#1f2937;border-radius:18px;padding:18px;box-shadow:0 10px 30px #0006}
+h1{font-size:24px;margin:8px 0 8px}
+p{color:#cbd5e1;margin:6px 0 14px}
 .grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin:18px 0}
 button{font-size:20px;padding:18px;border:0;border-radius:14px;background:#2563eb;color:white;font-weight:700}
 button:active{transform:scale(.98);background:#1d4ed8}
 .stop{background:#dc2626}
 .small{font-size:15px;padding:12px;background:#374151}
 .on{background:#059669}.off{background:#6b7280}
+.settings{background:#111827;border:1px solid #374151;border-radius:14px;padding:12px;margin:14px 0;text-align:left}
+label{display:block;font-size:13px;color:#cbd5e1;margin-bottom:6px}
+.row{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center}
+input{width:100%;box-sizing:border-box;border:1px solid #4b5563;background:#0b1220;color:#e5e7eb;border-radius:10px;padding:12px;font-size:16px}
+.hint{font-size:12px;color:#94a3b8;margin-top:6px}
 pre{text-align:left;background:#0b1220;padding:12px;border-radius:12px;overflow:auto;font-size:13px}
 </style>
 </head>
 <body>
 <div class="card">
-<h1>Jülide Web Joystick v6</h1><p>Komut modu: Basılan yön, DUR komutuna kadar devam eder.</p>
+<h1>Jülide Web Joystick v9</h1>
+<p>Komut modu: Basılan yön, DUR komutuna kadar devam eder.</p>
+
+<div class="settings">
+<label for="plcIp">Gate / OpenPLC IP Adresi</label>
+<div class="row">
+<input id="plcIp" inputmode="numeric" placeholder="192.168.137.218">
+<button class="small on" onclick="savePlcIp()">Kaydet</button>
+</div>
+<div class="grid" style="margin:10px 0 0">
+<button class="small" onclick="testPlc()">PLC Test</button>
+<button class="small" onclick="refresh()">Status</button>
+<button class="small stop" onclick="move('s')">STOP</button>
+</div>
+<div class="hint">Gate ESP IP değişirse buraya yeni IP'yi yaz. Kaydedilen IP EEPROM'da kalır.</div>
+</div>
+
+<div class="settings">
+<label>Mesafe Güvenliği</label>
+<div class="row" style="grid-template-columns:1fr 1fr auto">
+<input id="stopDist" inputmode="decimal" placeholder="Durma cm">
+<input id="slowDist" inputmode="decimal" placeholder="Yavaşlama cm">
+<button class="small on" onclick="saveSafety()">Kaydet</button>
+</div>
+<div class="hint">Kapıya çarpıyorsa durma mesafesini artır. Öneri: stop=12 cm, slow=25 cm. Çok erken durursa stop=8-10 cm yap.</div>
+</div>
+
 <div class="grid">
 <div></div><button onclick="move('f')">İLERİ</button><div></div>
 <button onclick="move('l')">SOL</button><button class="stop" onclick="move('s')">DUR</button><button onclick="move('r')">SAĞ</button>
 <div></div><button onclick="move('b')">GERİ</button><div></div>
 </div>
+
 <div class="grid">
 <button class="small on" onclick="gate(1)">Gate ON</button>
 <button class="small off" onclick="gate(0)">Gate OFF</button>
@@ -964,16 +1046,54 @@ pre{text-align:left;background:#0b1220;padding:12px;border-radius:12px;overflow:
 <button class="small" onclick="fetch('/api/gate/request').then(refresh)">Request</button>
 <button class="small" onclick="fetch('/api/gate/passed').then(refresh)">Passed</button>
 <button class="small on" onclick="fetch('/api/gate/force_pass').then(refresh)">Geç</button>
-<button class="small stop" onclick="move('s')">STOP</button>
 </div>
 <pre id="status">loading...</pre>
 </div>
 <script>
+function statusBox(){return document.getElementById('status')}
+function ipBox(){return document.getElementById('plcIp')}
+function stopBox(){return document.getElementById('stopDist')}
+function slowBox(){return document.getElementById('slowDist')}
 async function move(c){try{await fetch('/api/move?cmd='+c,{cache:'no-store'});refresh()}catch(e){show(e)}}
 async function gate(v){try{await fetch('/api/gate_mode?enabled='+v,{cache:'no-store'});refresh()}catch(e){show(e)}}
-function show(x){document.getElementById('status').textContent=typeof x==='string'?x:JSON.stringify(x,null,2)}
-async function refresh(){try{let r=await fetch('/api/status',{cache:'no-store'});show(await r.json())}catch(e){show('status error: '+e)}}
-setInterval(refresh,1000); refresh();
+function show(x){statusBox().textContent=typeof x==='string'?x:JSON.stringify(x,null,2)}
+async function savePlcIp(){
+  try{
+    const ip=ipBox().value.trim();
+    if(!ip){show('PLC IP boş olamaz');return}
+    let r=await fetch('/api/plc/ip?value='+encodeURIComponent(ip),{cache:'no-store'});
+    let j=await r.json();
+    show(j);
+    refresh();
+  }catch(e){show('IP kaydetme hatası: '+e)}
+}
+async function testPlc(){
+  try{
+    let r=await fetch('/api/plc/test',{cache:'no-store'});
+    show(await r.json());
+  }catch(e){show('PLC test hatası: '+e)}
+}
+async function saveSafety(){
+  try{
+    const stop=stopBox().value.trim();
+    const slow=slowBox().value.trim();
+    let url='/api/safety?stop='+encodeURIComponent(stop)+'&slow='+encodeURIComponent(slow);
+    let r=await fetch(url,{cache:'no-store'});
+    show(await r.json());
+    refresh();
+  }catch(e){show('Mesafe ayarı hatası: '+e)}
+}
+async function refresh(){
+  try{
+    let r=await fetch('/api/status',{cache:'no-store'});
+    let j=await r.json();
+    if(document.activeElement!==ipBox() && j.plc_ip){ipBox().value=j.plc_ip}
+    if(document.activeElement!==stopBox() && j.stop_distance_cm!==undefined){stopBox().value=j.stop_distance_cm}
+    if(document.activeElement!==slowBox() && j.slow_distance_cm!==undefined){slowBox().value=j.slow_distance_cm}
+    show(j);
+  }catch(e){show('status error: '+e)}
+}
+setInterval(refresh,1500); refresh();
 </script>
 </body>
 </html>
@@ -1096,6 +1216,56 @@ void handleApiGateForcePass() {
 }
 
 
+void handleApiPlcIp() {
+  String ipText;
+
+  if (server.hasArg("value")) {
+    ipText = server.arg("value");
+  } else if (server.hasArg("ip")) {
+    ipText = server.arg("ip");
+  } else {
+    sendJson("{\"ok\":false,\"error\":\"missing_ip\",\"usage\":\"/api/plc/ip?value=192.168.137.218\"}", 400);
+    return;
+  }
+
+  ipText.trim();
+
+  IPAddress newIp;
+  if (!parseIpString(ipText, newIp)) {
+    sendJson("{\"ok\":false,\"error\":\"invalid_ip\",\"example\":\"192.168.137.218\"}", 400);
+    return;
+  }
+
+  PLC_IP = newIp;
+  lastPlcConnected = false;
+  lastModbusCheck = 0;
+
+  savePlcIpToEeprom();
+
+  bool ok = maintainModbusConnection(true);
+
+  String json = "{";
+  json += "\"ok\":true,";
+  json += "\"plc_ip\":\"" + ipToString(PLC_IP) + "\",";
+  json += "\"plc_connected\":" + boolToJson(ok) + ",";
+  json += "\"saved\":true";
+  json += "}";
+
+  sendJson(json);
+}
+
+void handleApiPlcTest() {
+  bool ok = maintainModbusConnection(true);
+
+  String json = "{";
+  json += "\"ok\":" + boolToJson(ok) + ",";
+  json += "\"plc_ip\":\"" + ipToString(PLC_IP) + "\",";
+  json += "\"plc_port\":" + String(PLC_PORT);
+  json += "}";
+
+  sendJson(json, ok ? 200 : 500);
+}
+
 void handleApiSettings() {
   String json = "{";
   json += "\"motor_speed\":" + String(motorSpeed) + ",";
@@ -1104,6 +1274,38 @@ void handleApiSettings() {
   json += "\"slow_distance_cm\":" + String(slowDistanceCm, 1) + ",";
   json += "\"gate_pass_drive_ms\":" + String(GATE_PASS_DRIVE_MS) + ",";
   json += "\"plc_ip\":\"" + ipToString(PLC_IP) + "\"";
+  json += "}";
+  sendJson(json);
+}
+
+void handleApiSafety() {
+  if (!server.hasArg("stop") || !server.hasArg("slow")) {
+    sendJson("{\"ok\":false,\"error\":\"missing_stop_or_slow\"}", 400);
+    return;
+  }
+
+  float newStop = server.arg("stop").toFloat();
+  float newSlow = server.arg("slow").toFloat();
+
+  if (newStop < 3.0 || newStop > 80.0) {
+    sendJson("{\"ok\":false,\"error\":\"stop_distance_out_of_range_3_80_cm\"}", 400);
+    return;
+  }
+
+  if (newSlow < newStop) {
+    newSlow = newStop + 5.0;
+  }
+  if (newSlow > 120.0) {
+    newSlow = 120.0;
+  }
+
+  stopDistanceCm = newStop;
+  slowDistanceCm = newSlow;
+
+  String json = "{";
+  json += "\"ok\":true,";
+  json += "\"stop_distance_cm\":" + String(stopDistanceCm, 1) + ",";
+  json += "\"slow_distance_cm\":" + String(slowDistanceCm, 1);
   json += "}";
   sendJson(json);
 }
@@ -1135,6 +1337,8 @@ void handleApiStatus() {
   json += "\"gate_state\":\"" + gateStateToString(gateState) + "\",";
   json += "\"distance_cm\":" + String(lastDistanceCm, 1) + ",";
   json += "\"gate_mode_enabled\":" + boolToJson(gateModeEnabled) + ",";
+  json += "\"stop_distance_cm\":" + String(stopDistanceCm, 1) + ",";
+  json += "\"slow_distance_cm\":" + String(slowDistanceCm, 1) + ",";
   json += "\"pass_allowed\":" + boolToJson(passAllowed) + ",";
   json += "\"emergency\":" + boolToJson(emergency) + ",";
   json += "\"manual_mode\":\"latch_until_stop\"";
@@ -1176,6 +1380,73 @@ String gateStateToString(GateWorkflowState state) {
   }
 }
 
+// ================= KALICI AYARLAR / PLC IP =================
+
+bool parseIpString(const String &text, IPAddress &out) {
+  int parts[4] = {-1, -1, -1, -1};
+  int partIndex = 0;
+  String current = "";
+
+  for (unsigned int i = 0; i <= text.length(); i++) {
+    char c = (i < text.length()) ? text.charAt(i) : '.';
+
+    if (c == '.') {
+      if (current.length() == 0 || partIndex >= 4) return false;
+
+      for (unsigned int j = 0; j < current.length(); j++) {
+        if (!isDigit(current.charAt(j))) return false;
+      }
+
+      int value = current.toInt();
+      if (value < 0 || value > 255) return false;
+
+      parts[partIndex++] = value;
+      current = "";
+    } else {
+      current += c;
+      if (current.length() > 3) return false;
+    }
+  }
+
+  if (partIndex != 4) return false;
+
+  out = IPAddress(parts[0], parts[1], parts[2], parts[3]);
+  return true;
+}
+
+void loadPersistentSettings() {
+  uint32_t magic = 0;
+  EEPROM.get(EEPROM_MAGIC_ADDR, magic);
+
+  if (magic != SETTINGS_MAGIC) {
+    Serial.println("[EEPROM] Kayitli ayar yok. Varsayilan PLC IP kullaniliyor.");
+    return;
+  }
+
+  uint8_t ipBytes[4];
+  for (int i = 0; i < 4; i++) {
+    ipBytes[i] = EEPROM.read(EEPROM_PLC_IP_ADDR + i);
+  }
+
+  PLC_IP = IPAddress(ipBytes[0], ipBytes[1], ipBytes[2], ipBytes[3]);
+
+  Serial.print("[EEPROM] Kayitli PLC IP yuklendi: ");
+  Serial.println(PLC_IP);
+}
+
+void savePlcIpToEeprom() {
+  EEPROM.put(EEPROM_MAGIC_ADDR, SETTINGS_MAGIC);
+
+  for (int i = 0; i < 4; i++) {
+    EEPROM.write(EEPROM_PLC_IP_ADDR + i, PLC_IP[i]);
+  }
+
+  EEPROM.commit();
+
+  Serial.print("[EEPROM] PLC IP kaydedildi: ");
+  Serial.println(PLC_IP);
+}
+
 // ================= LOG / SETTINGS =================
 
 void printSettings() {
@@ -1188,6 +1459,11 @@ void printSettings() {
   Serial.println(PLC_PORT);
   Serial.print("OpenPLC Unit ID: ");
   Serial.println(MODBUS_UNIT_ID);
+
+  Serial.print("Sol motor invert: ");
+  Serial.println(LEFT_INVERT ? "EVET" : "HAYIR");
+  Serial.print("Sag motor invert: ");
+  Serial.println(RIGHT_INVERT ? "EVET" : "HAYIR");
 
   Serial.print("Sabit hiz: ");
   Serial.print(motorSpeed);
@@ -1210,6 +1486,10 @@ void printSettings() {
   Serial.print("Durma / kapi algilama mesafesi: ");
   Serial.print(stopDistanceCm);
   Serial.println(" cm");
+
+  Serial.print("Mesafe kontrol araligi: ");
+  Serial.print(distanceCheckInterval);
+  Serial.println(" ms");
 
   Serial.print("Kapidan sonra dur: ");
   Serial.println(STOP_AFTER_GATE_PASS ? "EVET" : "HAYIR");
