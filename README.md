@@ -9,7 +9,7 @@
 ![Jülide Robot + OpenPLC Gate Demo](data/demo.gif)
 
 <p align="center">
-  <a href="https://github.com/codermery/OpenPLC-with-julide/blob/master/data/run.mp4"><strong>▶ Tam kalite videoyu izle (MP4)</strong></a>
+  <a href="https://www.youtube.com/watch?v=nVAnG_Sywss"><strong>▶ Tam kalite videoyu Youtube da izle (MP4)</strong></a>
 </p>
 
 ---
